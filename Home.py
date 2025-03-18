@@ -1,5 +1,5 @@
 # Core dependencies
-Flask>=2.2.0
+#Flask>=2.2.0
 gunicorn>=20.1.0
 numpy>=1.21.0
 pandas>=1.3.0
