@@ -52,7 +52,7 @@ if st.session_state['video_id'] is None:
     if st.button("Go Home"):
         switch_page("Home")
 else:
-    api_key = st.session_state.api_key
+    api_key = AIzaSyCTbMxFaBUO5M5y0Gr3sqlsZrmz_RT-lfs
     all_video_data = st.session_state.all_video_df
     video_id = st.session_state['video_id']
 
