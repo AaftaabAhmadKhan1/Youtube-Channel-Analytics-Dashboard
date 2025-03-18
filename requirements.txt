@@ -20,7 +20,8 @@ wordcloud>=1.8.0
 pillow>=8.0.0
 plotly>=5.3.0
 dash>=2.0.0
-streamlit>=1.0.0  # Added Streamlit for web app development
+streamlit>=1.0.0  # Streamlit for web app development
+streamlit-extras>=0.2.0  # Added Streamlit Extras for additional features
 
 # Data Processing
 openpyxl>=3.0.9
