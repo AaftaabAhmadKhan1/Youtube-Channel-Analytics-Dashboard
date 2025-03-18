@@ -195,7 +195,7 @@ else:
 ########################################################################################################################
 #                                       COMMENT NETWORK ANALYSIS
 ########################################################################################################################
-    with st.spinner("Applying Network Analysis to Comments"):
+   ''' with st.spinner("Applying Network Analysis to Comments"):
         # Analyze the comments and display the results
         st.title("Comments Network Analysis & Community Detection")
 
@@ -241,4 +241,4 @@ else:
             # Display the communities visualization with a brief title/description
             st.subheader("👥 Community Visualization")
             st.caption(f"Communities in Sample of 500 Nodes: {no_of_communities} detected")
-            st.pyplot(fig_communities)
+            st.pyplot(fig_communities)'''
