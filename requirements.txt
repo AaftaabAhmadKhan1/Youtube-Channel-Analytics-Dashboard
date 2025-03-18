@@ -29,6 +29,9 @@ openpyxl>=3.0.9
 xlrd>=2.0.1
 pyarrow>=7.0.0
 
+# Natural Language Processing
+textblob>=0.17.1  # Added TextBlob for NLP analysis
+
 # Time Series Forecasting
 prophet>=1.1.5  # Added Prophet for forecasting
 
