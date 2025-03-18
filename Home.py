@@ -93,14 +93,14 @@ def display_video_list(video_data, start_index, end_index, search_query=None):
 ########################################################################################################################
 #                                       MAIN PAGE CONFIGURATION
 ########################################################################################################################
-st.set_page_config(page_title="Youtube Channel Analytics Dashboard",
+st.set_page_config(page_title="Physics Wallah Youtube Channel Analytics Dashboard",
                    page_icon="📊",
                    layout="wide")
 
 ########################################################################################################################
 #                                       SIDE BAR CONFIGURATION
 ########################################################################################################################
-st.title("YouTube Analytics Dashboard")
+st.title("Physics Wallah YouTube Analytics Dashboard")
 
 # Sidebar
 st.sidebar.title("Settings")
