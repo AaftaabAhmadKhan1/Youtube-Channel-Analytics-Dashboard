@@ -35,6 +35,9 @@ textblob>=0.17.1  # Added TextBlob for NLP analysis
 # Time Series Forecasting
 prophet>=1.1.5  # Added Prophet for forecasting
 
+# Graph-Based Analysis
+networkx>=3.0  # Added NetworkX for graph algorithms
+
 # DevOps & Deployment
 setuptools>=65.0.0
 wheel>=0.38.0
