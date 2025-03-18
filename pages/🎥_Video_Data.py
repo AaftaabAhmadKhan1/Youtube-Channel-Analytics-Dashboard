@@ -12,6 +12,13 @@ from streamlit_extras.switch_page_button import switch_page
 
 from analyze_comments import analyze_comments
 from channelVideoDataExtraction import *
+# Add this at the beginning of your Video Data page
+if 'api_key' not in st.session_state:
+    st.error("❌ API key missing! Please return to the main page and enter your YouTube API key first.")
+    st.stop()  # This stops further execution of the script
+
+# Then proceed with your existing code
+api_key = st.session_state.api_key
 
 
 ########################################################################################################################
