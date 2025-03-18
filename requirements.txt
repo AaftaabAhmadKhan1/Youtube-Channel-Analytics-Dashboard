@@ -37,6 +37,7 @@ prophet>=1.1.5  # Added Prophet for forecasting
 
 # Graph-Based Analysis
 networkx>=3.0  # Added NetworkX for graph algorithms
+igraph>=0.10.8  # Added iGraph for advanced graph analysis
 
 # DevOps & Deployment
 setuptools>=65.0.0
