@@ -16,6 +16,8 @@ from prophet import Prophet
 
 from channelDataExtraction import getChannelData
 from channelVideoDataExtraction import *
+if 'api_key' not in st.session_state:
+    st.switch_page("🏠_Home.py")
 
 
 ########################################################################################################################
