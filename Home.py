@@ -120,7 +120,7 @@ st.sidebar.title("Settings")
 
 # Sidebar: Enter Channel ID and YouTube API Key
 if 'API_KEY' not in st.session_state:
-    st.session_state.API_KEY = "AIzaSyCTbMxFaBUO5M5y0Gr3sqlsZrmz_RT-lfs"
+    st.session_state.API_KEY = "AIzaSyDcgVfdspDiI0dvtYqA0wjgeVqSFl4MhBY"
 if 'CHANNEL_NAME' not in st.session_state:
     st.session_state.CHANNEL_NAME = ""
 #st.session_state.API_KEY = st.sidebar.text_input("Enter your YouTube API Key", st.session_state.API_KEY,
