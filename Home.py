@@ -30,17 +30,13 @@ def download_data(api_key, channel_id):
 
     st.session_state.start_index = 0
     st.session_state.end_index = 10
-    st.session_state['video_id'] = None
+    st.session_state.video_id = None
     st.session_state.all_video_df = all_video_data
 
     return channel_details, videos, all_video_data, videos_df
 
 def display_video_list(video_data, start_index, end_index, search_query=None):
     """Displays a list of videos with session state validation"""
-    if 'api_key' not in st.session_state:
-        st.error("🔑 API key required! Please enter your YouTube API key first.")
-        st.stop()
-
     new_search_query = st.text_input("Search Videos by Title", search_query or "")
     
     if 'start_index' not in st.session_state:
@@ -65,9 +61,9 @@ def display_video_list(video_data, start_index, end_index, search_query=None):
             st.write(video['title'])
         with col4:
             if st.button("Check Video Statistics", key=video['id']):
-                if 'api_key' in st.session_state:
-                    st.session_state['video_id'] = video['id']
-                    switch_page("video_data")
+                if 'api_key' in st.session_state and st.session_state.api_key:
+                    st.session_state.video_id = video['id']
+                    switch_page("pages/🎥_Video_Data.py")
                 else:
                     st.error("Please enter API key first")
 
@@ -97,43 +93,46 @@ if 'channel_id' not in st.session_state:
 st.title("Physics Wallah YouTube Analytics Dashboard")
 
 # Sidebar configuration
-st.sidebar.title("Settings")
-st.sidebar.markdown("---")
-
-# API Key Input
-api_key = st.sidebar.text_input(
-   # "🔑 Enter YouTube API Key:",
-    "AIzaSyCTbMxFaBUO5M5y0Gr3sqlsZrmz_RT-lfs"=st.session_state.api_key,
-    type="password",
-    help="Get from Google Cloud Console"
-)
-if api_key:
-    st.session_state.api_key = api_key
-
-# Channel ID Input
-channel_id = st.sidebar.text_input(
-    "📺 Enter Channel ID:",
-    value=st.session_state.channel_id,
-    help="Find in channel URL"
-)
-if channel_id:
-    st.session_state.channel_id = channel_id
-
-# Validation
-if not st.session_state.api_key or not st.session_state.channel_id:
-    st.sidebar.error("❌ Both API Key and Channel ID are required")
-    st.stop()
-
-# Data Refresh
-refresh_button = st.sidebar.button("🔄 Refresh Data")
-st.sidebar.markdown("---")
+with st.sidebar:
+    st.title("Settings")
+    st.markdown("---")
+    
+    # API Key Input
+    api_key = st.text_input(
+        "🔑 YouTube API Key:",
+        value=st.session_state.api_key,
+        type="password",
+        help="Get from Google Cloud Console"
+    )
+    if api_key:
+        st.session_state.api_key = api_key
+    
+    # Channel ID Input
+    channel_id = st.text_input(
+        "📺 Channel ID:",
+        value=st.session_state.channel_id,
+        help="Find in channel URL"
+    )
+    if channel_id:
+        st.session_state.channel_id = channel_id
+    
+    # Validation
+    if not st.session_state.api_key or not st.session_state.channel_id:
+        st.error("❌ Both fields are required")
+        st.stop()
+    
+    # Data Refresh
+    st.markdown("---")
+    refresh_button = st.button("🔄 Refresh Data")
+    st.markdown("---")
 
 # Data download with error handling
 try:
-    channel_details, videos, all_video_data, videos_df = download_data(
-        st.session_state.api_key,
-        st.session_state.channel_id
-    )
+    with st.spinner("📡 Connecting to YouTube API..."):
+        channel_details, videos, all_video_data, videos_df = download_data(
+            st.session_state.api_key,
+            st.session_state.channel_id
+        )
 except Exception as e:
     st.error(f"❌ Error fetching data: {str(e)}")
     st.stop()
@@ -142,66 +141,22 @@ if channel_details is None:
     st.error("❌ Invalid Channel ID or API Key")
     st.stop()
 
-
-# Sidebar
-
-
-# Sidebar: Enter Channel ID and YouTube API Key
-'''if 'API_KEY' not in st.session_state:
-    st.session_state.API_KEY = "AIzaSyCTbMxFaBUO5M5y0Gr3sqlsZrmz_RT-lfs"
-if 'CHANNEL_ID' not in st.session_state:
-    st.session_state.CHANNEL_ID = "" '''
-
-#st.session_state.API_KEY = st.sidebar.text_input("Enter your YouTube API Key", st.session_state.API_KEY,
-                               #                  type="password")
-#st.session_state.CHANNEL_ID = st.sidebar.text_input("Enter the YouTube Channel ID", st.session_state.CHANNEL_ID)
-
-if not st.session_state.API_KEY or not st.session_state.CHANNEL_ID:
-    st.warning("Please enter your Channel ID.")
-    # Display the GitHub link for the user manual
-    user_manual_link = "https://github.com/zainmz/Youtube-Channel-Analytics-Dashboard"
-   # st.markdown(f"If you need help, please refer to the the GitHub Repository for the [User Manual]({user_manual_link}).")
-    st.stop()
-
-# Data Refresh Button
-refresh_button = st.sidebar.button("Refresh Data")
-
-# First Data Load
-channel_details, videos, all_video_data, videos_df = download_data(st.session_state.API_KEY, st.session_state.CHANNEL_ID)
-
-if channel_details is None:
-    st.warning("Invalid YouTube Channel ID. Please check and enter a valid Channel ID.")
-    st.stop()
-
-if refresh_button:
-    with st.spinner("Refreshing data..."):
-        channel_details, videos, all_video_data, videos_df = download_data(st.session_state.API_KEY, st.session_state.CHANNEL_ID)
-
-        if channel_details is None:
-            st.warning("Invalid YouTube Channel ID. Please check and enter a valid Channel ID.")
-            st.stop()
-
-# Data Filters for fine-tuned data selection
-st.sidebar.title("Data Filters")
-
-num_videos = st.sidebar.slider("Select Number of Top Videos to Display:", 1, 50, 10)
-
 # Convert the 'published_date' column to datetime format
 all_video_data['published_date'] = pd.to_datetime(all_video_data['published_date'])
 
-# Extract min and max publish dates
-min_date = all_video_data['published_date'].min().date()  # Ensure it's a date object
-max_date = all_video_data['published_date'].max().date()  # Ensure it's a date object
-
-# Sidebar date input
-start_date = st.sidebar.date_input("Select Start Date", min_date)
-end_date = st.sidebar.date_input("Select End Date", max_date)
+# Data Filters
+with st.sidebar:
+    st.title("Data Filters")
+    num_videos = st.slider("Select Number of Top Videos to Display:", 1, 50, 10)
+    min_date = all_video_data['published_date'].min().date()
+    max_date = all_video_data['published_date'].max().date()
+    start_date = st.date_input("Select Start Date", min_date)
+    end_date = st.date_input("Select End Date", max_date)
+    tag_search = st.text_input("Search Videos by Tag")
 
 if start_date > end_date:
     st.sidebar.warning("Start date should be earlier than end date.")
     st.stop()
-
-tag_search = st.sidebar.text_input("Search Videos by Tag")
 
 date_range_start = pd.Timestamp(start_date)
 date_range_end = pd.Timestamp(end_date)
@@ -213,228 +168,121 @@ if tag_search:
     filtered_data = filtered_data[filtered_data['tags'].apply(lambda x: tag_search in x)]
 
 ########################################################################################################################
-#                                       CHANNEL DETAILS AREA CONFIGURATION
+#                                       CHANNEL DETAILS AREA
 ########################################################################################################################
-
-# Display channel details
 st.header("Channel Details", divider="green")
-
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    channel_thumbnail = channel_details['thumbnail']
-
-    add_logo(channel_thumbnail, height=300)
-
+    add_logo(channel_details['thumbnail'], height=300)
     view_count = int(channel_details['viewCount'])
     subscriber_count = int(channel_details['subscriberCount'])
-
-    # Format view count and subscriber count with commas
-    view_count_formatted = "{:,}".format(view_count)
-    subscriber_count_formatted = "{:,}".format(subscriber_count)
-
     st.markdown(f"**Channel Title:** {channel_details['title']}")
     st.markdown(f"**Channel Description:** {channel_details['description']}")
 
 with col3:
-    # Go to Channel Button
-    st.link_button("Go to Channel", f"https://www.youtube.com/channel/{st.session_state.CHANNEL_ID}")
+    st.link_button("Go to Channel", f"https://www.youtube.com/channel/{st.session_state.channel_id}")
 
 col1, col2, col3 = st.columns(3)
-col1.metric("Total Views", view_count_formatted, "")
-col2.metric("Subscribers", subscriber_count_formatted, "")
+col1.metric("Total Views", f"{view_count:,}", "")
+col2.metric("Subscribers", f"{subscriber_count:,}", "")
 col3.metric("Total Videos", len(videos), "")
-style_metric_cards(background_color="#000000",
-                   border_left_color="#049204",
-                   border_color="#0E0E0E"
-                   )
+style_metric_cards(background_color="#000000", border_left_color="#049204", border_color="#0E0E0E")
 
 ########################################################################################################################
-#                                            TOP  VIDEO GRAPHS AREA
+#                                            TOP VIDEO GRAPHS
 ########################################################################################################################
-
 col1, col2, col3 = st.columns(3)
-# Display statistical graphs for the top videos based on views
+
+# Top Views
 with col1:
-    st.subheader(f"Top {num_videos} Videos Based on Views")
-    sorted_video_data = filtered_data.sort_values(by='view_count', ascending=False)
-    # Get the top videos from the sorted DataFrame
-    top_views_df = sorted_video_data.head(num_videos)
+    st.subheader(f"Top {num_videos} Videos by Views")
+    top_views_df = filtered_data.sort_values(by='view_count', ascending=False).head(num_videos)
     with chart_container(top_views_df):
-        # Display statistical graphs for the top videos based on views
-        # Create a bar chart using Plotly
         fig = px.bar(top_views_df, x='title', y='view_count')
-        # Update the layout to rename the axes
-        fig.update_layout(xaxis_title="Video Title",
-                          yaxis_title="View Count")
+        fig.update_layout(xaxis_title="Video Title", yaxis_title="View Count")
         fig.update_traces(marker_color='green')
-        # Display the bar chart in Streamlit
         st.plotly_chart(fig, use_container_width=True)
 
+# Top Likes
 with col2:
-    st.subheader(f"Top {num_videos} Videos Based on Likes")
-    sorted_video_data = filtered_data.sort_values(by='like_count', ascending=False)
-    # Get the top 10 liked videos from the sorted DataFrame
-    top_likes_df = sorted_video_data.head(num_videos)
-
+    st.subheader(f"Top {num_videos} Videos by Likes")
+    top_likes_df = filtered_data.sort_values(by='like_count', ascending=False).head(num_videos)
     with chart_container(top_likes_df):
-        # Display statistical graphs for the top 10 videos based on views
-        # Create a bar chart using Plotly
         fig = px.bar(top_likes_df, x='title', y='like_count')
-        # Update the layout to rename the axes
-        fig.update_layout(xaxis_title="Video Title",
-                          yaxis_title="Like Count")
+        fig.update_layout(xaxis_title="Video Title", yaxis_title="Like Count")
         fig.update_traces(marker_color='orange')
-        # Display the bar chart in Streamlit
         st.plotly_chart(fig, use_container_width=True)
 
+# Top Comments
 with col3:
-    st.subheader(f"Top {num_videos} Based on Comments")
-    sorted_video_data = filtered_data.sort_values(by='comment_count', ascending=False)
-    # Get the top 10 liked videos from the sorted DataFrame
-    top_comments_df = sorted_video_data.head(num_videos)
+    st.subheader(f"Top {num_videos} Videos by Comments")
+    top_comments_df = filtered_data.sort_values(by='comment_count', ascending=False).head(num_videos)
     with chart_container(top_comments_df):
-        # Display statistical graphs for the top 10 videos based on views
-        # Create a bar chart using Plotly
         fig = px.bar(top_comments_df, x='title', y='comment_count')
-        # Update the layout to rename the axes
-        fig.update_layout(xaxis_title="Video Title",
-                          yaxis_title="Comment Count")
+        fig.update_layout(xaxis_title="Video Title", yaxis_title="Comment Count")
         fig.update_traces(marker_color='green')
-        # Display the bar chart in Streamlit
         st.plotly_chart(fig, use_container_width=True)
 
 ########################################################################################################################
-#                                            CHANNEL GROWTH STATS
+#                                            GROWTH ANALYTICS
 ########################################################################################################################
-
 st.subheader("Viewership Growth Over Time", divider="green")
-views = filtered_data['view_count']
-dates = filtered_data['published_date']
-
-# Creating a time series plot using Plotly
 fig = go.Figure()
-
-fig.add_trace(
-    go.Scatter(x=dates, y=views, mode='lines+markers', name='Views Over Time', line=dict(color='orange'))
-)
-
-fig.update_layout(title='Views Over Time',
-                  xaxis_title='Published Date',
-                  yaxis_title='Number of Views',
-                  template="plotly_dark")
-
+fig.add_trace(go.Scatter(x=filtered_data['published_date'], y=filtered_data['view_count'], 
+                        mode='lines+markers', name='Views', line=dict(color='orange')))
+fig.update_layout(title='Views Over Time', xaxis_title='Date', yaxis_title='Views', template="plotly_dark")
 st.plotly_chart(fig, use_container_width=True)
 
-st.subheader("Predicted Viewership Growth Over Time", divider="green")
-
-with st.spinner("Predicting Views for the next Week"):
-    # Prepare dataframe for Prophet
-    forecast_df = all_video_data[['published_date', 'view_count']]
-    forecast_df.columns = ['ds', 'y']
-
-    # Initialize the Prophet model
-    model = Prophet(
-        yearly_seasonality=False,
-        weekly_seasonality=True,
-        daily_seasonality=True,
-        seasonality_mode='additive')
-
-    # Fit the model with the data
+st.subheader("Viewership Forecast", divider="green")
+with st.spinner("🔮 Predicting future views..."):
+    forecast_df = filtered_data[['published_date', 'view_count']].rename(columns={'published_date': 'ds', 'view_count': 'y'})
+    model = Prophet(yearly_seasonality=False, weekly_seasonality=True, daily_seasonality=True)
     model.fit(forecast_df)
-
-    # Dataframe for future dates
-    future_dates = model.make_future_dataframe(periods=30)
-
-    # Predict views for the future dates
-    forecast = model.predict(future_dates)
-    # Plot the original data and the forecast
-
-    # Plotting using Plotly
-    # Filter the forecast dataframe to include only the forecasted period
-    forecasted_period = forecast[forecast['ds'] > forecast_df['ds'].max()]
-
-    # Plotting using Plotly
-    # Filter the forecast dataframe to include only the forecasted period
-    forecasted_period = forecast[forecast['ds'] > forecast_df['ds'].max()]
-
-    # Filter the original dataframe to include only the last 30 days
-    last_date = forecast_df['ds'].max()
-    start_date = last_date - datetime.timedelta(days=30)
-    last_30_days = forecast_df[(forecast_df['ds'] > start_date) & (forecast_df['ds'] <= last_date)]
-
-    # Plotting using Plotly
-    trace1 = go.Scatter(x=last_30_days['ds'], y=last_30_days['y'], mode='lines', name='Actual Views (Last 30 Days)')
-    trace2 = go.Scatter(x=forecasted_period['ds'], y=forecasted_period['yhat'], mode='lines',
-                        name='Predicted Views (Next 30 Days)')
-    layout = go.Layout(title="YouTube Views: Last 30 Days and Forecast for Next 30 Days", xaxis_title="Date",
-                       yaxis_title="Views")
-    fig = go.Figure(data=[trace1, trace2], layout=layout)
-
-    # Display the combined historical and forecast data in Streamlit using Plotly
+    future = model.make_future_dataframe(periods=30)
+    forecast = model.predict(future)
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=forecast_df['ds'], y=forecast_df['y'], name='Actual', line=dict(color='orange')))
+    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], name='Forecast', line=dict(color='green')))
+    fig.update_layout(title="30-Day Viewership Forecast", xaxis_title='Date', yaxis_title='Views')
     st.plotly_chart(fig, use_container_width=True)
-########################################################################################################################
-#                                         WORD CLOUD & LIKE TO VIEW RATIO
-########################################################################################################################
 
+########################################################################################################################
+#                                         WORD CLOUD & RATIO ANALYSIS
+########################################################################################################################
 col1, col2 = st.columns(2)
 
+# Word Cloud
 with col1:
-    st.divider()
-    with st.spinner("Generating Word Cloud..."):
-        st.subheader("Most Common Tags")
-        # Extracting tags from DataFrame and creating a single string
-        all_tags = " ".join(" ".join(tags) for tags in filtered_data['tags'])
+    st.subheader("Most Common Tags")
+    all_tags = " ".join(" ".join(tags) for tags in filtered_data['tags'])
+    wordcloud = WordCloud(width=800, height=400, background_color='black').generate(all_tags)
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    st.image(buf, use_column_width=True)
 
-        # Generating the word cloud
-        wordcloud = WordCloud(width=800, height=400, background_color='black').generate(all_tags)
-
-        # Plotting the word cloud using matplotlib
-        plt.figure(figsize=(10, 5))
-        plt.imshow(wordcloud, interpolation='bilinear')
-        plt.axis('off')
-        plt.tight_layout(pad=0)
-
-        # Saving the figure to a bytes buffer
-        buf = io.BytesIO()
-        plt.savefig(buf, format="png", bbox_inches='tight', pad_inches=0)
-        buf.seek(0)
-
-        st.image(buf, use_column_width=True)
-
+# Like/View Ratio
 with col2:
-    # Calculating the Like-to-View Ratio
-    filtered_data['like_to_view_ratio'] = filtered_data['like_count'] / filtered_data['view_count']
-
-    # Extracting the like-to-view ratio and published dates from the dataframe
-    like_to_view_ratio = filtered_data['like_to_view_ratio']
-
-    st.divider()
-    st.subheader("Like-to-View Ratio Over Time")
-
-    # Creating a time series plot for Like-to-View Ratio using Plotly
-    fig_ratio = go.Figure()
-
-    fig_ratio.add_trace(go.Scatter(x=dates, y=like_to_view_ratio, mode='lines+markers', name='Like-to-View Ratio',
-                                   line=dict(color='green')))
-
-    fig_ratio.update_layout(xaxis_title='Published Date',
-                            yaxis_title='Like-to-View Ratio',
-                            template="plotly_dark")
-
-    # Display the plot in Streamlit
-    st.plotly_chart(fig_ratio, use_container_width=True)
+    st.subheader("Engagement Ratio Analysis")
+    filtered_data['engagement_ratio'] = (filtered_data['like_count'] + filtered_data['comment_count']) / filtered_data['view_count']
+    fig = px.scatter(filtered_data, x='published_date', y='engagement_ratio', 
+                    trendline="lowess", color='view_count')
+    fig.update_layout(xaxis_title='Date', yaxis_title='Engagement Ratio')
+    st.plotly_chart(fig, use_container_width=True)
 
 ########################################################################################################################
-#                                         DETAILED VIDEO STATS SELECTION SECTION
+#                                         VIDEO SELECTION SECTION
 ########################################################################################################################
-
 st.divider()
-st.subheader("Detailed Video Statistics Video Selection")
-st.write("Click on view statistics to get detailed information related to the selected video")
-# latest 10 videos
+st.subheader("Video Selection for Detailed Analysis")
 display_video_list(videos, 0, 10)
 
+# Final session state check
 if 'api_key' not in st.session_state or not st.session_state.api_key:
-    st.error("Session expired! Please reload the page and enter your API key.")
+    st.error("⚠️ Session expired! Please reload and re-enter credentials.")
     st.stop()
