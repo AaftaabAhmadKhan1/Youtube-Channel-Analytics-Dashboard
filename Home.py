@@ -434,3 +434,7 @@ st.subheader("Detailed Video Statistics Video Selection")
 st.write("Click on view statistics to get detailed information related to the selected video")
 # latest 10 videos
 display_video_list(videos, 0, 10)
+
+if 'api_key' not in st.session_state or not st.session_state.api_key:
+    st.error("Session expired! Please reload the page and enter your API key.")
+    st.stop()
