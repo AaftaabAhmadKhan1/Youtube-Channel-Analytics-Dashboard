@@ -1,5 +1,5 @@
 import datetime
-
+from googleapiclient.discovery import build
 import streamlit as st
 import io
 import plotly.express as px
@@ -22,6 +22,18 @@ from channelVideoDataExtraction import *
 #                                               FUNCTIONS
 ########################################################################################################################
 @st.cache_data
+def get_channel_id(api_key, channel_name):
+    youtube = build('youtube', 'v3', developerKey=api_key)
+    request = youtube.search().list(
+        q=channel_name,
+        part='snippet',
+        type='channel',
+        maxResults=1
+    )
+    response = request.execute()
+    if not response['items']:
+        return None
+    return response['items'][0]['snippet']['channelId']
 def download_data(api_key, channel_id):
     channel_details = getChannelData(api_key, channel_id)
 
@@ -108,18 +120,23 @@ st.sidebar.title("Settings")
 # Sidebar: Enter Channel ID and YouTube API Key
 if 'API_KEY' not in st.session_state:
     st.session_state.API_KEY = "AIzaSyCTbMxFaBUO5M5y0Gr3sqlsZrmz_RT-lfs"
-if 'CHANNEL_ID' not in st.session_state:
-    st.session_state.CHANNEL_ID = ""
-
+if 'CHANNEL_NAME' not in st.session_state:
+    st.session_state.CHANNEL_NAME = ""
 #st.session_state.API_KEY = st.sidebar.text_input("Enter your YouTube API Key", st.session_state.API_KEY,
                                              #    type="password")
-st.session_state.CHANNEL_ID = st.sidebar.text_input("Enter the YouTube Channel ID", st.session_state.CHANNEL_ID)
-
-if not st.session_state.API_KEY or not st.session_state.CHANNEL_ID:
-   # st.warning("Please enter your API Key and Channel ID.")
-    # Display the GitHub link for the user manual
+st.session_state.CHANNEL_NAME = st.sidebar.text_input("Enter YouTube Channel Name", st.session_state.CHANNEL_NAME)
+if st.session_state.CHANNEL_NAME:
+    with st.spinner("Searching for channel..."):
+        channel_id = get_channel_id(st.session_state.API_KEY, st.session_state.CHANNEL_NAME)
+        if channel_id:
+            st.session_state.CHANNEL_ID = channel_id
+        else:
+            st.error("❌ Channel not found. Please check the name and try again.")
+            st.stop()
+if not st.session_state.API_KEY or not hasattr(st.session_state, 'CHANNEL_ID'):
+    st.warning("Please enter a valid YouTube Channel Name.")
     user_manual_link = "https://github.com/zainmz/Youtube-Channel-Analytics-Dashboard"
-    st.markdown(f"If you need help, please refer to the the GitHub Repository for the [User Manual]({user_manual_link}).")
+    st.markdown(f"Refer to the [User Manual]({user_manual_link}) for help.")
     st.stop()
 
 # Data Refresh Button
