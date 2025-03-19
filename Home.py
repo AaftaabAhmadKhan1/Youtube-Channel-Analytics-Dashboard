@@ -111,8 +111,8 @@ if 'API_KEY' not in st.session_state:
 if 'CHANNEL_ID' not in st.session_state:
     st.session_state.CHANNEL_ID = ""
 
-st.session_state.API_KEY = st.sidebar.text_input("Enter your YouTube API Key", st.session_state.API_KEY,
-                                                 type="password")
+#st.session_state.API_KEY = st.sidebar.text_input("Enter your YouTube API Key", st.session_state.API_KEY,
+                                             #    type="password")
 st.session_state.CHANNEL_ID = st.sidebar.text_input("Enter the YouTube Channel ID", st.session_state.CHANNEL_ID)
 
 if not st.session_state.API_KEY or not st.session_state.CHANNEL_ID:
