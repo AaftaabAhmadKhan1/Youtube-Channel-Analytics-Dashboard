@@ -136,8 +136,8 @@ if st.session_state.CHANNEL_NAME:
             st.stop()
 if not st.session_state.API_KEY or not hasattr(st.session_state, 'CHANNEL_ID'):
     st.warning("Please enter a valid YouTube Channel Name.")
-    user_manual_link = "https://github.com/zainmz/Youtube-Channel-Analytics-Dashboard"
-    st.markdown(f"Refer to the [User Manual]({user_manual_link}) for help.")
+   # user_manual_link = "https://github.com/zainmz/Youtube-Channel-Analytics-Dashboard"
+   # st.markdown(f"Refer to the [User Manual]({user_manual_link}) for help.")
     st.stop()
 
 # Data Refresh Button
