@@ -1,24 +1,17 @@
 import datetime
-
 import streamlit as st
 import io
 import plotly.express as px
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
-
 from streamlit_extras.metric_cards import style_metric_cards
 from streamlit_extras.chart_container import chart_container
 from streamlit_extras.switch_page_button import switch_page
 from streamlit_extras.app_logo import add_logo
-
 from prophet import Prophet
-
 from channelDataExtraction import getChannelData
 from channelVideoDataExtraction import *
-if 'api_key' not in st.session_state:
-    st.switch_page("🏠_Home.py")
-
 
 ########################################################################################################################
 #                                               FUNCTIONS
@@ -27,7 +20,6 @@ if 'api_key' not in st.session_state:
 def download_data(api_key, channel_id):
     channel_details = getChannelData(api_key, channel_id)
 
-    # check if bad channel id
     if channel_details is None:
         return None, None, None, None
 
@@ -41,34 +33,26 @@ def download_data(api_key, channel_id):
     st.session_state['video_id'] = None
     st.session_state.all_video_df = all_video_data
 
-    st.session_state.api_key = st.session_state.API_KEY
-
     return channel_details, videos, all_video_data, videos_df
 
-
 def display_video_list(video_data, start_index, end_index, search_query=None):
-    """Displays a list of videos in a tabular format with custom column order and buttons."""
+    """Displays a list of videos with session state validation"""
+    if 'api_key' not in st.session_state:
+        st.error("🔑 API key required! Please enter your YouTube API key first.")
+        st.stop()
 
-    # Input widget for searching videos by title
-    if search_query is None:
-        search_query = ""
-    new_search_query = st.text_input("Search Videos by Title", search_query)
-
-    # Initialize start_index and end_index in session_state
+    new_search_query = st.text_input("Search Videos by Title", search_query or "")
+    
     if 'start_index' not in st.session_state:
         st.session_state.start_index = start_index
     if 'end_index' not in st.session_state:
         st.session_state.end_index = end_index
 
-    # If a new search query is entered, reset the start and end indices
     if new_search_query != search_query:
         st.session_state.start_index = start_index
         st.session_state.end_index = end_index
 
-    # Filter videos based on the search query across the entire video_data list
     filtered_videos = [video for video in video_data if new_search_query.lower() in video['title'].lower()]
-
-    # Paginate the filtered results
     paginated_videos = filtered_videos[st.session_state.start_index:st.session_state.end_index]
 
     for video in paginated_videos:
@@ -80,42 +64,97 @@ def display_video_list(video_data, start_index, end_index, search_query=None):
         with col3:
             st.write(video['title'])
         with col4:
-            video_stats = st.button("Check Video Statistics", key=video['id'])
-            if video_stats:
-                st.session_state['video_id'] = video['id']
-                switch_page("video_data")
+            if st.button("Check Video Statistics", key=video['id']):
+                if 'api_key' in st.session_state:
+                    st.session_state['video_id'] = video['id']
+                    switch_page("video_data")
+                else:
+                    st.error("Please enter API key first")
 
-    # Display a button to load the next 10 search results
     if st.session_state.end_index < len(filtered_videos):
         if st.button('Load next 10 videos', key='load_next'):
             st.session_state.start_index = st.session_state.end_index
             st.session_state.end_index += 10
 
-
 ########################################################################################################################
 #                                       MAIN PAGE CONFIGURATION
 ########################################################################################################################
-st.set_page_config(page_title="Physics Wallah Youtube Channel Analytics Dashboard",
-                   page_icon="📊",
-                   layout="wide")
+st.set_page_config(
+    page_title="Physics Wallah Youtube Channel Analytics Dashboard",
+    page_icon="📊",
+    layout="wide"
+)
+
+# Initialize session state
+if 'api_key' not in st.session_state:
+    st.session_state.api_key = ""
+if 'channel_id' not in st.session_state:
+    st.session_state.channel_id = ""
 
 ########################################################################################################################
 #                                       SIDE BAR CONFIGURATION
 ########################################################################################################################
 st.title("Physics Wallah YouTube Analytics Dashboard")
 
-# Sidebar
+# Sidebar configuration
 st.sidebar.title("Settings")
+st.sidebar.markdown("---")
+
+# API Key Input
+api_key = st.sidebar.text_input(
+   # "🔑 Enter YouTube API Key:",
+    "AIzaSyCTbMxFaBUO5M5y0Gr3sqlsZrmz_RT-lfs"=st.session_state.api_key,
+    type="password",
+    help="Get from Google Cloud Console"
+)
+if api_key:
+    st.session_state.api_key = api_key
+
+# Channel ID Input
+channel_id = st.sidebar.text_input(
+    "📺 Enter Channel ID:",
+    value=st.session_state.channel_id,
+    help="Find in channel URL"
+)
+if channel_id:
+    st.session_state.channel_id = channel_id
+
+# Validation
+if not st.session_state.api_key or not st.session_state.channel_id:
+    st.sidebar.error("❌ Both API Key and Channel ID are required")
+    st.stop()
+
+# Data Refresh
+refresh_button = st.sidebar.button("🔄 Refresh Data")
+st.sidebar.markdown("---")
+
+# Data download with error handling
+try:
+    channel_details, videos, all_video_data, videos_df = download_data(
+        st.session_state.api_key,
+        st.session_state.channel_id
+    )
+except Exception as e:
+    st.error(f"❌ Error fetching data: {str(e)}")
+    st.stop()
+
+if channel_details is None:
+    st.error("❌ Invalid Channel ID or API Key")
+    st.stop()
+
+
+# Sidebar
+
 
 # Sidebar: Enter Channel ID and YouTube API Key
-if 'API_KEY' not in st.session_state:
+'''if 'API_KEY' not in st.session_state:
     st.session_state.API_KEY = "AIzaSyCTbMxFaBUO5M5y0Gr3sqlsZrmz_RT-lfs"
 if 'CHANNEL_ID' not in st.session_state:
-    st.session_state.CHANNEL_ID = ""
+    st.session_state.CHANNEL_ID = "" '''
 
 #st.session_state.API_KEY = st.sidebar.text_input("Enter your YouTube API Key", st.session_state.API_KEY,
                                #                  type="password")
-st.session_state.CHANNEL_ID = st.sidebar.text_input("Enter the YouTube Channel ID", st.session_state.CHANNEL_ID)
+#st.session_state.CHANNEL_ID = st.sidebar.text_input("Enter the YouTube Channel ID", st.session_state.CHANNEL_ID)
 
 if not st.session_state.API_KEY or not st.session_state.CHANNEL_ID:
     st.warning("Please enter your Channel ID.")
