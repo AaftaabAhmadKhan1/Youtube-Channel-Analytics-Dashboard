@@ -14,9 +14,7 @@ from analyze_comments import analyze_comments
 from channelVideoDataExtraction import *
 # Add this at the beginning of your Video Data page
 if 'api_key' not in st.session_state:
-    st.error("❌ API key missing! Please return to the main page and enter your YouTube API key first.")
-    st.stop()  # This stops further execution of the script
-
+    st.switch_page("🏠_Home.py")
 # Then proceed with your existing code
 api_key = st.session_state.api_key
 
