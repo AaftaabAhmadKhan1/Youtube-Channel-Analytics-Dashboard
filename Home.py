@@ -107,7 +107,7 @@ st.sidebar.title("Settings")
 
 # Sidebar: Enter Channel ID and YouTube API Key
 if 'API_KEY' not in st.session_state:
-    st.session_state.API_KEY = ""
+    st.session_state.API_KEY = "AIzaSyCTbMxFaBUO5M5y0Gr3sqlsZrmz_RT-lfs"
 if 'CHANNEL_ID' not in st.session_state:
     st.session_state.CHANNEL_ID = ""
 
@@ -116,7 +116,7 @@ if 'CHANNEL_ID' not in st.session_state:
 st.session_state.CHANNEL_ID = st.sidebar.text_input("Enter the YouTube Channel ID", st.session_state.CHANNEL_ID)
 
 if not st.session_state.API_KEY or not st.session_state.CHANNEL_ID:
-    st.warning("Please enter your API Key and Channel ID.")
+   # st.warning("Please enter your API Key and Channel ID.")
     # Display the GitHub link for the user manual
     user_manual_link = "https://github.com/zainmz/Youtube-Channel-Analytics-Dashboard"
     st.markdown(f"If you need help, please refer to the the GitHub Repository for the [User Manual]({user_manual_link}).")
