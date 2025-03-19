@@ -16,7 +16,7 @@ from channelVideoDataExtraction import *
 if 'api_key' not in st.session_state:
     st.switch_page("🏠_Home.py")
 # Then proceed with your existing code
-api_key = st.session_state.api_key
+    api_key = st.session_state.api_key
 
 
 ########################################################################################################################
